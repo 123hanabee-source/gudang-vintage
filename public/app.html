@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gudang Vintage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   PRINT STYLES — receipt only
+═══════════════════════════════════════════════════════════ */
+@media print {
+  body > *:not(#print-area) { display: none !important; }
+  #print-area {
+    display: block !important;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: #000;
+    max-width: 320px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  #print-area h2 { font-size: 16px; text-align: center; margin-bottom: 4px; }
+  #print-area .pr-divider { border-top: 1px dashed #000; margin: 8px 0; }
+  #print-area .pr-row { display: flex; justify-content: space-between; padding: 2px 0; }
+  #print-area .pr-total { font-weight: bold; font-size: 14px; }
+  #print-area .pr-footer { text-align: center; margin-top: 12px; font-size: 10px; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GLOBAL RESET
+═══════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{-webkit-font-smoothing:antialiased;}
+[hidden]{display:none!important;}
+:focus-visible{outline:2px solid #6366f1;outline-offset:2px;}
+
+/* ═══════════════════════════════════════════════════════════
+   LOGIN PAGE
+═══════════════════════════════════════════════════════════ */
+#page-login{
+  min-height:100vh; display:flex; align-items:center; justify-content:center;
+  background:#0a0f1e;
+  background-image:radial-gradient(ellipse at 60% 30%, rgba(99,102,241,.08) 0%, transparent 60%);
+  font-family:'Inter',sans-serif;
+  padding:20px;
+}
+.login-card{
+  width:min(420px,100%);
+  background:#111827; border:1px solid #374151; border-radius:16px;
+  padding:40px 36px; position:relative; overflow:hidden;
+}
+.login-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#6366f1,#8b5cf6,#6366f1);
+}
+.login-logo{
+  width:56px;height:56px;border-radius:14px;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;
+  color:#fff;margin:0 auto 20px;
+}
+.login-title{
+  font-family:'Oswald',sans-serif;font-size:1.6rem;font-weight:700;
+  text-align:center;color:#f9fafb;letter-spacing:.02em;text-transform:uppercase;
+  margin-bottom:6px;
+}
+.login-sub{
+  text-align:center;font-size:13px;color:#6b7280;margin-bottom:28px;
+}
+.login-field{margin-bottom:14px;}
+.login-field label{
+  display:block;font-size:11px;font-weight:600;letter-spacing:.07em;
+  text-transform:uppercase;color:#9ca3af;margin-bottom:6px;
+}
+.login-field input{
+  width:100%;background:#0a0f1e;border:1px solid #374151;
+  color:#f9fafb;padding:11px 14px;border-radius:8px;
+  font-family:'Inter',sans-serif;font-size:14px;
+}
+.login-field input:focus{border-color:#6366f1;outline:none;}
+.login-field input::placeholder{color:#4b5563;}
+.login-btn{
+  width:100%;padding:13px;border-radius:8px;border:none;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:#fff;font-family:'Inter',sans-serif;font-weight:600;
+  font-size:14px;cursor:pointer;margin-top:6px;letter-spacing:.02em;
+  transition:opacity .15s ease;
+}
+.login-btn:hover{opacity:.9;}
+.login-btn:disabled{opacity:.5;cursor:not-allowed;}
+.login-error{
+  background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);
+  color:#f87171;border-radius:8px;padding:10px 14px;
+  font-size:13px;margin-bottom:14px;display:none;
+}
+.login-error.visible{display:block;}
+.login-footer{
+  text-align:center;font-size:11px;color:#4b5563;
+  margin-top:24px;font-family:'JetBrains Mono',monospace;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CLIENT PAGE — warm vintage paper
+═══════════════════════════════════════════════════════════ */
+#page-client{
+  background:#1E1B16;
+  background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.012) 0 2px,transparent 2px 26px);
+  min-height:100vh; color:#EDE3CE;
+  font-family:'Work Sans',sans-serif; line-height:1.6;
+  --ink:#1E1B16; --ink-2:#171410; --surface:#2A241C; --surface-2:#352D22;
+  --paper:#E8DCC0; --paper-2:#D9C9A0; --denim:#3F5C76; --denim-deep:#2C4356;
+  --stamp-green:#4F6F52; --stamp-amber:#B5862B; --stamp-rust:#B5562B;
+  --thread-gold:#C9A227; --text-paper:#2A2418; --text-light:#EDE3CE; --text-muted:#A89A7E;
+}
+#page-client .wrap{max-width:1240px;margin:0 auto;padding:0 24px;}
+/* Header */
+#page-client .site-header{
+  position:sticky;top:0;z-index:60;background:var(--ink-2);
+  border-bottom:2px solid var(--surface-2);
+}
+#page-client .header-inner{
+  max-width:1240px;margin:0 auto;padding:14px 24px;
+  display:flex;align-items:center;gap:24px;
+}
+#page-client .logo{display:flex;align-items:center;gap:12px;text-decoration:none;flex-shrink:0;}
+#page-client .logo-stamp{
+  width:46px;height:46px;border-radius:50%;border:2px dashed var(--paper);
+  color:var(--paper);display:flex;align-items:center;justify-content:center;
+  font-family:'Oswald',sans-serif;font-weight:700;font-size:.95rem;transform:rotate(-6deg);
+}
+#page-client .logo-text{font-family:'Oswald',sans-serif;font-weight:700;line-height:1.05;font-size:.95rem;letter-spacing:.03em;color:var(--text-light);}
+#page-client .logo-text small{display:block;font-family:'Space Mono',monospace;font-weight:400;font-size:.6rem;letter-spacing:.1em;color:var(--text-muted);margin-top:2px;}
+#page-client .header-right{display:flex;align-items:center;gap:16px;margin-left:auto;}
+#page-client .user-chip{
+  display:flex;align-items:center;gap:8px;font-family:'Space Mono',monospace;
+  font-size:.72rem;color:var(--text-muted);
+}
+#page-client .user-chip strong{color:var(--thread-gold);}
+#page-client .cart-btn{
+  position:relative;display:flex;align-items:center;gap:8px;
+  background:transparent;border:2px solid var(--text-light);color:var(--text-light);
+  padding:9px 14px;cursor:pointer;font-family:'Oswald',sans-serif;font-size:.82rem;
+  letter-spacing:.04em;text-transform:uppercase;
+}
+#page-client .cart-btn:hover{background:var(--text-light);color:var(--ink);}
+#page-client .cart-count{
+  position:absolute;top:-9px;right:-9px;background:var(--thread-gold);color:var(--ink);
+  font-family:'Space Mono',monospace;font-weight:700;font-size:.68rem;
+  width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+}
+#page-client .logout-btn-c{
+  background:transparent;border:1px dashed var(--text-muted);color:var(--text-muted);
+  padding:7px 12px;font-family:'Space Mono',monospace;font-size:.65rem;
+  letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
+}
+#page-client .logout-btn-c:hover{border-color:var(--stamp-rust);color:var(--stamp-rust);}
+/* Hero */
+#page-client .hero{max-width:1240px;margin:0 auto;padding:64px 24px 48px;display:grid;grid-template-columns:1.15fr 0.85fr;gap:48px;align-items:start;}
+#page-client .eyebrow{font-family:'Space Mono',monospace;font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--thread-gold);display:inline-block;margin-bottom:16px;}
+#page-client .hero h1{font-family:'Oswald',sans-serif;font-size:clamp(2.3rem,5.4vw,4.1rem);line-height:.96;font-weight:700;color:var(--text-light);margin-bottom:24px;}
+#page-client .hero-sub{font-size:1.05rem;color:var(--text-muted);max-width:46ch;margin-bottom:32px;}
+#page-client .hero-sub strong{color:var(--text-light);font-weight:600;}
+/* Buttons */
+#page-client .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 26px;font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:.85rem;border:2px solid currentColor;background:transparent;cursor:pointer;transition:background .18s ease,color .18s ease;white-space:nowrap;}
+#page-client .btn-primary{background:var(--denim);border-color:var(--denim);color:var(--paper);}
+#page-client .btn-primary:hover{background:var(--denim-deep);border-color:var(--denim-deep);}
+#page-client .btn-ghost-dark{color:var(--text-paper);border-color:var(--text-paper);}
+#page-client .btn-ghost-dark:hover{background:var(--text-paper);color:var(--paper);}
+#page-client .btn-ghost-light{color:var(--text-light);border-color:var(--text-light);}
+#page-client .btn-ghost-light:hover{background:var(--text-light);color:var(--ink);}
+#page-client .btn:disabled{opacity:.45;cursor:not-allowed;border-style:dashed;}
+#page-client .btn:disabled:hover{background:transparent;color:inherit;}
+#page-client .btn-block{width:100%;}
+#page-client .btn-small{padding:8px 14px;font-size:.72rem;}
+/* Condition legend */
+#page-client .hero-legend{background:var(--paper);color:var(--text-paper);padding:24px;border:1px solid var(--paper-2);}
+#page-client .hero-legend h2{font-family:'Oswald',sans-serif;font-size:1rem;font-weight:600;letter-spacing:.04em;margin-bottom:16px;}
+#page-client .grade-card{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px dashed var(--paper-2);}
+#page-client .grade-card:first-of-type{border-top:none;}
+#page-client .stamp{flex-shrink:0;font-family:'Space Mono',monospace;font-weight:700;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;border:2px solid;border-radius:50%;width:58px;height:58px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.05;padding:4px;}
+#page-client .stamp-a{color:var(--stamp-green);border-color:var(--stamp-green);transform:rotate(-7deg);}
+#page-client .stamp-b{color:var(--stamp-amber);border-color:var(--stamp-amber);transform:rotate(5deg);}
+#page-client .grade-card p{font-size:.85rem;color:var(--text-paper);opacity:.85;}
+#page-client .grade-card p strong{display:block;font-family:'Oswald',sans-serif;font-size:.85rem;letter-spacing:.03em;text-transform:uppercase;opacity:1;margin-bottom:2px;}
+/* Shop section */
+#page-client .section{max-width:1240px;margin:0 auto;padding:48px 24px;}
+#page-client .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:32px;flex-wrap:wrap;}
+#page-client .section-head h2{font-family:'Oswald',sans-serif;font-size:clamp(1.4rem,3vw,1.9rem);color:var(--text-light);letter-spacing:.02em;}
+#page-client .pill{background:transparent;border:2px solid var(--surface-2);color:var(--text-muted);padding:8px 16px;font-family:'Oswald',sans-serif;font-size:.78rem;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;}
+#page-client .pill:hover{border-color:var(--text-muted);color:var(--text-light);}
+#page-client .pill.is-active{background:var(--denim);border-color:var(--denim);color:var(--paper);}
+#page-client .filter-pills{display:flex;gap:12px;flex-wrap:wrap;}
+/* Product card */
+#page-client .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:32px;}
+#page-client .product-card{position:relative;background:var(--paper);color:var(--text-paper);padding-top:30px;padding-bottom:16px;border:1px solid var(--paper-2);display:flex;flex-direction:column;cursor:pointer;}
+#page-client .product-card::before{content:"";position:absolute;top:11px;left:50%;transform:translateX(-50%);width:13px;height:13px;border-radius:50%;background:var(--ink);border:2px solid var(--paper-2);}
+#page-client .product-card-media{height:150px;display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px dashed var(--paper-2);margin:0 16px 16px;}
+#page-client .garment-icon{width:78px;height:78px;color:var(--text-paper);opacity:.8;}
+#page-client .sold-stamp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-13deg);border:3px solid var(--stamp-rust);color:var(--stamp-rust);font-family:'Oswald',sans-serif;font-weight:700;font-size:1rem;letter-spacing:.08em;padding:6px 14px;mix-blend-mode:multiply;opacity:.92;background:rgba(232,220,192,.4);}
+#page-client .product-card-body{padding:0 16px;display:flex;flex-direction:column;gap:6px;flex:1;}
+#page-client .product-cat{font-family:'Space Mono',monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--denim);}
+#page-client .product-name{font-family:'Oswald',sans-serif;font-size:1.05rem;font-weight:600;letter-spacing:.01em;line-height:1.2;}
+#page-client .product-meta-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:8px;}
+#page-client .condition-tag{font-family:'Space Mono',monospace;font-size:.66rem;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border:1.5px solid;border-radius:3px;}
+#page-client .condition-tag.grade-a{color:var(--stamp-green);border-color:var(--stamp-green);}
+#page-client .condition-tag.grade-b{color:var(--stamp-amber);border-color:var(--stamp-amber);}
+#page-client .condition-tag.grade-c{color:var(--stamp-rust);border-color:var(--stamp-rust);}
+#page-client .product-price{font-family:'Space Mono',monospace;font-weight:700;font-size:1.05rem;}
+#page-client .product-code{font-family:'Space Mono',monospace;font-size:.66rem;color:var(--text-paper);opacity:.55;padding:0 16px;}
+#page-client .product-card-footer{padding:16px 16px 0;}
+/* Cart drawer */
+#page-client .overlay{position:fixed;inset:0;background:rgba(10,9,7,.7);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:80;}
+#page-client .overlay.is-visible{opacity:1;pointer-events:auto;}
+#page-client .cart-drawer{position:fixed;top:0;right:0;height:100%;width:min(420px,100vw);background:var(--paper);color:var(--text-paper);z-index:90;transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column;}
+#page-client .cart-drawer.is-open{transform:translateX(0);}
+#page-client .drawer-head{display:flex;align-items:center;justify-content:space-between;padding:24px 24px 16px;}
+#page-client .drawer-head h3{font-family:'Oswald',sans-serif;font-size:1.1rem;}
+#page-client .drawer-close{background:transparent;border:2px solid var(--text-paper);color:var(--text-paper);width:34px;height:34px;cursor:pointer;}
+#page-client .drawer-close:hover{background:var(--text-paper);color:var(--paper);}
+#page-client .perforation{height:14px;flex-shrink:0;background-image:radial-gradient(circle at center,var(--ink) 0 6px,transparent 6.5px);background-size:22px 14px;background-position:6px -2px;background-repeat:repeat-x;}
+#page-client .cart-items{flex:1;overflow-y:auto;padding:16px 24px;}
+#page-client .cart-empty{text-align:center;padding:48px 12px;opacity:.6;font-size:.9rem;}
+#page-client .cart-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px dashed var(--paper-2);align-items:flex-start;}
+#page-client .cart-row-info{flex:1;min-width:0;}
+#page-client .cart-row-name{font-weight:600;font-size:.9rem;}
+#page-client .cart-row-meta{font-family:'Space Mono',monospace;font-size:.68rem;opacity:.6;margin-top:2px;}
+#page-client .cart-row-price{font-family:'Space Mono',monospace;font-weight:700;font-size:.88rem;white-space:nowrap;}
+#page-client .cart-row-remove{background:none;border:none;color:var(--stamp-rust);cursor:pointer;font-family:'Space Mono',monospace;font-size:.68rem;text-decoration:underline;padding:2px 0;}
+#page-client .cart-foot{padding:16px 24px 24px;border-top:1px dashed var(--paper-2);}
+#page-client .cart-total-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;}
+#page-client .cart-total-row span:first-child{font-family:'Space Mono',monospace;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;}
+#page-client .cart-total-row span:last-child{font-family:'Space Mono',monospace;font-weight:700;font-size:1.3rem;}
+/* Checkout & modal */
+#page-client .modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-48%) scale(.97);width:min(560px,92vw);max-height:86vh;overflow-y:auto;background:var(--paper);color:var(--text-paper);z-index:90;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;border:1px solid var(--paper-2);}
+#page-client .modal.is-open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1);}
+#page-client .modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px dashed var(--paper-2);position:sticky;top:0;background:var(--paper);}
+#page-client .modal-head h3{font-family:'Oswald',sans-serif;font-size:1.1rem;}
+#page-client .modal-close{background:transparent;border:2px solid var(--text-paper);color:var(--text-paper);width:34px;height:34px;cursor:pointer;font-size:1rem;}
+#page-client .modal-close:hover{background:var(--text-paper);color:var(--paper);}
+#page-client .modal-body{padding:24px;}
+#page-client .form-grid{display:grid;gap:16px;}
+#page-client .field label{display:block;font-family:'Space Mono',monospace;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;opacity:.75;}
+#page-client .field input,#page-client .field select,#page-client .field textarea{width:100%;background:var(--ink-2);color:var(--text-light);border:1px solid var(--surface-2);padding:11px 12px;font-family:'Work Sans',sans-serif;font-size:.92rem;}
+#page-client .field textarea{resize:vertical;min-height:64px;}
+#page-client .field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+#page-client .checkout-summary{background:var(--ink-2);color:var(--text-light);padding:16px;margin-bottom:24px;font-family:'Space Mono',monospace;font-size:.8rem;}
+#page-client .checkout-summary-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dotted var(--surface-2);}
+#page-client .checkout-summary-row.total{border-bottom:none;font-weight:700;font-size:.95rem;padding-top:10px;}
+#page-client .checkout-confirm{text-align:center;padding:32px 12px;}
+#page-client .checkout-confirm .stamp{width:80px;height:80px;margin:0 auto 16px;font-size:.85rem;}
+#page-client .checkout-confirm h4{font-family:'Oswald',sans-serif;font-size:1.2rem;text-transform:uppercase;margin-bottom:8px;}
+#page-client .checkout-confirm p{opacity:.75;font-size:.88rem;margin-bottom:8px;}
+/* History */
+#page-client .history-bar{display:flex;align-items:center;gap:10px;margin-bottom:32px;font-family:'Space Mono',monospace;font-size:.85rem;color:var(--text-muted);flex-wrap:wrap;}
+#page-client .history-bar strong{color:var(--thread-gold);}
+#page-client .receipt-list{display:grid;gap:32px;max-width:480px;}
+#page-client .receipt-card{background:var(--paper);color:var(--text-paper);}
+#page-client .receipt-zigzag{height:11px;background:linear-gradient(135deg,var(--ink) 50%,transparent 50%) 0 0/14px 11px repeat-x,linear-gradient(45deg,var(--ink) 50%,transparent 50%) 0 0/14px 11px repeat-x;}
+#page-client .receipt-card-inner{padding:24px;}
+#page-client .receipt-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px;}
+#page-client .receipt-top h4{font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:.03em;}
+#page-client .receipt-top .receipt-date{font-family:'Space Mono',monospace;font-size:.7rem;opacity:.6;margin-top:2px;}
+#page-client .badge{font-family:'Space Mono',monospace;font-size:.64rem;text-transform:uppercase;letter-spacing:.05em;border:1.5px solid;padding:3px 9px;border-radius:3px;white-space:nowrap;}
+#page-client .badge-green{color:var(--stamp-green);border-color:var(--stamp-green);}
+#page-client .badge-amber{color:var(--stamp-amber);border-color:var(--stamp-amber);}
+#page-client .receipt-items{margin:12px 0;border-top:1px dashed var(--paper-2);padding-top:12px;}
+#page-client .receipt-item-row{display:flex;justify-content:space-between;font-size:.84rem;padding:3px 0;gap:10px;}
+#page-client .receipt-item-row .ri-price{font-family:'Space Mono',monospace;}
+#page-client .receipt-total{display:flex;justify-content:space-between;border-top:1px dashed var(--paper-2);margin-top:12px;padding-top:12px;font-family:'Space Mono',monospace;font-weight:700;}
+#page-client .history-empty{border:1.5px dashed var(--surface-2);padding:48px 24px;text-align:center;color:var(--text-muted);max-width:480px;}
+#page-client .history-empty p{margin-bottom:16px;font-size:.92rem;}
+/* Footer */
+#page-client .site-footer{border-top:2px solid var(--surface-2);margin-top:48px;}
+#page-client .footer-inner{max-width:1240px;margin:0 auto;padding:32px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;}
+#page-client .footer-inner p{font-family:'Space Mono',monospace;font-size:.74rem;color:var(--text-muted);}
+/* Toast */
+#page-client #c-toast-wrap{position:fixed;bottom:20px;right:20px;z-index:100;display:flex;flex-direction:column;gap:8px;}
+#page-client #c-toast-wrap .c-toast{padding:10px 16px;background:var(--surface);border-left:3px solid var(--stamp-green);color:var(--text-light);font-family:'Space Mono',monospace;font-size:.78rem;min-width:220px;}
+/* Responsive */
+@media(max-width:960px){#page-client .hero{grid-template-columns:1fr;padding:32px 24px;}}
+@media(max-width:640px){#page-client .hero{padding:24px 16px;}#page-client .section{padding:32px 16px;}#page-client .field-row{grid-template-columns:1fr;}}
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN PAGE — dark navy
+═══════════════════════════════════════════════════════════ */
+#page-admin{
+  height:100vh;display:flex;overflow:hidden;
+  font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;
+  background:#0a0f1e;color:#f9fafb;
+  --bg:#0a0f1e;--surface:#111827;--surface-2:#1f2937;--border:#374151;--border-2:#4b5563;
+  --accent:#6366f1;--accent-d:#4f46e5;--accent-l:rgba(99,102,241,.12);
+  --green:#10b981;--green-l:rgba(16,185,129,.12);
+  --amber:#f59e0b;--amber-l:rgba(245,158,11,.12);
+  --red:#ef4444;--red-l:rgba(239,68,68,.12);
+  --text:#f9fafb;--text-2:#9ca3af;--text-3:#6b7280;
+}
+#page-admin ::-webkit-scrollbar{width:6px;height:6px;}
+#page-admin ::-webkit-scrollbar-track{background:var(--surface);}
+#page-admin ::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:3px;}
+/* Sidebar */
+#page-admin .sidebar{width:240px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+#page-admin .sidebar-brand{padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+#page-admin .brand-dot{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0;}
+#page-admin .brand-text{font-weight:700;font-size:14px;line-height:1.2;}
+#page-admin .brand-text small{display:block;font-size:10px;font-weight:400;color:var(--text-2);margin-top:1px;}
+#page-admin .sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto;}
+#page-admin .nav-section-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);padding:10px 10px 4px;}
+#page-admin .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13px;font-weight:500;color:var(--text-2);cursor:pointer;background:none;border:none;width:100%;text-align:left;transition:background .14s ease,color .14s ease;}
+#page-admin .nav-item:hover{background:var(--surface-2);color:var(--text);}
+#page-admin .nav-item.is-active{background:var(--accent-l);color:var(--accent);font-weight:600;}
+#page-admin .sidebar-user{padding:14px 16px;border-top:1px solid var(--border);}
+#page-admin .sidebar-user-name{font-size:13px;font-weight:600;color:var(--text);}
+#page-admin .sidebar-user-role{font-size:11px;color:var(--text-3);font-family:'JetBrains Mono',monospace;margin-top:1px;}
+#page-admin .logout-btn-a{margin-top:10px;width:100%;padding:8px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-2);font-size:12px;cursor:pointer;text-align:center;}
+#page-admin .logout-btn-a:hover{background:var(--red-l);color:var(--red);border-color:rgba(239,68,68,.3);}
+/* Main area */
+#page-admin .admin-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#page-admin .topbar{height:56px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;gap:16px;}
+#page-admin .topbar-breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-2);}
+#page-admin .topbar-breadcrumb .current{color:var(--text);font-weight:600;}
+#page-admin .content{flex:1;overflow-y:auto;padding:24px;}
+/* Stat cards */
+#page-admin .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px;margin-bottom:28px;}
+#page-admin .stat-card{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:18px 20px;position:relative;overflow:hidden;}
+#page-admin .stat-card::before{content:"";position:absolute;top:0;left:0;width:3px;height:100%;}
+#page-admin .stat-card.c-indigo::before{background:var(--accent);}
+#page-admin .stat-card.c-green::before{background:var(--green);}
+#page-admin .stat-card.c-amber::before{background:var(--amber);}
+#page-admin .stat-card.c-red::before{background:var(--red);}
+#page-admin .stat-label{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);margin-bottom:6px;}
+#page-admin .stat-value{font-size:28px;font-weight:700;line-height:1;font-family:'JetBrains Mono',monospace;}
+#page-admin .stat-sub{font-size:11px;color:var(--text-3);margin-top:4px;}
+/* Section header */
+#page-admin .section-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+#page-admin .section-hd h2{font-size:18px;font-weight:600;}
+#page-admin .section-hd-actions{display:flex;gap:8px;align-items:center;}
+/* Toolbar */
+#page-admin .toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+#page-admin .search-wrap{position:relative;flex:1;min-width:180px;max-width:320px;}
+#page-admin .search-wrap input{width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px 12px 8px 34px;border-radius:6px;font-size:13px;font-family:'Inter',sans-serif;}
+#page-admin .search-wrap input::placeholder{color:var(--text-3);}
+#page-admin .search-wrap input:focus{border-color:var(--accent);outline:none;}
+#page-admin .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-3);}
+#page-admin .filter-select{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-size:13px;font-family:'Inter',sans-serif;}
+#page-admin .filter-select:focus{border-color:var(--accent);outline:none;}
+/* Table */
+#page-admin .table-wrap{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+#page-admin .data-table{width:100%;border-collapse:collapse;}
+#page-admin .data-table thead{background:var(--surface);}
+#page-admin .data-table th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);border-bottom:1px solid var(--border);white-space:nowrap;}
+#page-admin .data-table td{padding:11px 14px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;}
+#page-admin .data-table tbody tr:last-child td{border-bottom:none;}
+#page-admin .data-table tbody tr:hover{background:rgba(255,255,255,.025);}
+#page-admin .cell-mono{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-2);}
+#page-admin .cell-name{font-weight:500;}
+#page-admin .cell-actions{display:flex;gap:6px;white-space:nowrap;}
+/* Stock meter */
+#page-admin .stock-meter{display:flex;align-items:center;gap:6px;}
+#page-admin .stock-segments{display:flex;gap:2px;}
+#page-admin .stock-seg{width:8px;height:14px;border-radius:2px;background:var(--border);}
+#page-admin .stock-seg.fill-g{background:var(--green);}
+#page-admin .stock-seg.fill-a{background:var(--amber);}
+#page-admin .stock-seg.fill-r{background:var(--red);}
+#page-admin .stock-num{font-family:'JetBrains Mono',monospace;font-size:12px;}
+/* Badges */
+#page-admin .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;letter-spacing:.03em;white-space:nowrap;}
+#page-admin .badge-green{background:var(--green-l);color:var(--green);}
+#page-admin .badge-amber{background:var(--amber-l);color:var(--amber);}
+#page-admin .badge-red{background:var(--red-l);color:var(--red);}
+#page-admin .badge-indigo{background:var(--accent-l);color:var(--accent);}
+#page-admin .badge-gray{background:rgba(255,255,255,.06);color:var(--text-2);}
+/* Buttons */
+#page-admin .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:6px;font-size:13px;font-weight:500;border:none;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;transition:background .14s ease;}
+#page-admin .btn:disabled{opacity:.45;cursor:not-allowed;}
+#page-admin .btn-primary{background:var(--accent);color:#fff;}
+#page-admin .btn-primary:hover:not(:disabled){background:var(--accent-d);}
+#page-admin .btn-ghost{background:var(--surface-2);color:var(--text-2);border:1px solid var(--border);}
+#page-admin .btn-ghost:hover:not(:disabled){color:var(--text);border-color:var(--border-2);}
+#page-admin .btn-danger{background:var(--red-l);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+#page-admin .btn-danger:hover:not(:disabled){background:var(--red);color:#fff;}
+#page-admin .btn-sm{padding:5px 10px;font-size:12px;}
+#page-admin .btn-icon{padding:6px;border-radius:6px;background:transparent;border:1px solid var(--border);color:var(--text-2);}
+#page-admin .btn-icon:hover{background:var(--surface-2);color:var(--text);}
+/* Empty/loading */
+#page-admin .table-empty{text-align:center;padding:48px 20px;color:var(--text-3);font-size:13px;}
+#page-admin .table-empty strong{display:block;font-size:15px;color:var(--text-2);margin-bottom:6px;}
+/* Admin Modal */
+#page-admin .a-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .18s ease;z-index:50;}
+#page-admin .a-overlay.is-open{opacity:1;pointer-events:auto;}
+#page-admin .a-modal{position:fixed;top:50%;left:50%;z-index:60;transform:translate(-50%,-48%) scale(.97);width:min(560px,94vw);max-height:88vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:12px;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;}
+#page-admin .a-modal.is-open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1);}
+#page-admin .modal-hd{position:sticky;top:0;background:var(--surface);z-index:1;display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border);gap:12px;}
+#page-admin .modal-hd h3{font-size:15px;font-weight:600;}
+#page-admin .modal-close-a{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-2);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+#page-admin .modal-close-a:hover{background:var(--surface-2);color:var(--text);}
+#page-admin .modal-body-a{padding:20px;}
+#page-admin .modal-foot-a{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--surface);}
+/* Admin form */
+#page-admin .form-grid{display:grid;gap:14px;}
+#page-admin .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+#page-admin .field label{display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);margin-bottom:6px;}
+#page-admin .field input,#page-admin .field select,#page-admin .field textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:6px;font-size:13px;font-family:'Inter',sans-serif;}
+#page-admin .field input:focus,#page-admin .field select:focus,#page-admin .field textarea:focus{border-color:var(--accent);outline:none;}
+#page-admin .field input::placeholder,#page-admin .field textarea::placeholder{color:var(--text-3);}
+#page-admin .field textarea{resize:vertical;min-height:72px;}
+#page-admin .field-hint{font-size:11px;color:var(--text-3);margin-top:4px;}
+/* Confirm */
+#page-admin .confirm-body{padding:20px;text-align:center;}
+#page-admin .confirm-icon{width:48px;height:48px;border-radius:50%;background:var(--red-l);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:var(--red);}
+#page-admin .confirm-body h4{font-size:15px;font-weight:600;margin-bottom:6px;}
+#page-admin .confirm-body p{color:var(--text-2);font-size:13px;}
+/* Pagination */
+#page-admin .pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;color:var(--text-2);font-size:12px;}
+#page-admin .pagination-btns{display:flex;gap:4px;}
+#page-admin .page-btn{padding:5px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-2);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;}
+#page-admin .page-btn:hover:not(:disabled){background:var(--surface-2);color:var(--text);}
+#page-admin .page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+#page-admin .page-btn:disabled{opacity:.35;cursor:not-allowed;}
+/* Admin Toast */
+#a-toast-wrap{position:fixed;bottom:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:8px;}
+.a-toast{padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;min-width:240px;border-left:3px solid;background:#111827;color:#f9fafb;font-family:'Inter',sans-serif;animation:aSlide .2s ease forwards;}
+.a-toast-success{border-color:#10b981;}
+.a-toast-error{border-color:#ef4444;}
+@keyframes aSlide{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:none;}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     LOGIN PAGE
+════════════════════════════════════════════════════ -->
+<div id="page-login">
+  <div class="login-card">
+    <div class="login-logo">GV</div>
+    <h1 class="login-title">Gudang Vintage</h1>
+    <p class="login-sub">Masuk ke akun Anda</p>
+    <div class="login-error" id="login-error"></div>
+    <form id="login-form">
+      <div class="login-field">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" placeholder="nama@email.com" required autocomplete="email">
+      </div>
+      <div class="login-field">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="login-btn" id="login-btn">Masuk</button>
+    </form>
+    <p class="login-footer">Gudang Vintage © 2026</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     CLIENT PAGE
+════════════════════════════════════════════════════ -->
+<div id="page-client" hidden>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="logo" href="#top">
+        <span class="logo-stamp">GV</span>
+        <span class="logo-text">GUDANG VINTAGE<small>Arsip Thrift &amp; Preloved</small></span>
+      </a>
+      <div class="header-right">
+        <div class="user-chip">Halo, <strong id="c-username">—</strong></div>
+        <button class="cart-btn" id="c-cart-btn" aria-label="Buka keranjang">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h2l2.4 12.4a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 9H6"/><circle cx="9" cy="21" r="1.4"/><circle cx="18" cy="21" r="1.4"/></svg>
+          Keranjang
+          <span class="cart-count" id="c-cart-count">0</span>
+        </button>
+        <button class="logout-btn-c" onclick="logout()">Keluar</button>
+      </div>
+    </div>
+  </header>
+
+  <section style="max-width:1240px;margin:0 auto;padding:64px 24px 48px;display:grid;grid-template-columns:1.15fr 0.85fr;gap:48px;align-items:start;" id="c-hero">
+    <div>
+      <span class="eyebrow">Koleksi Arsip — Sejak 2023</span>
+      <h1>Satu Item,<br>Satu Kisah.</h1>
+      <p class="hero-sub">Setiap barang dikurasi dengan <strong>kondisi terverifikasi</strong> — dari Like New hingga Fair, semua tercatat. Tidak ada kejutan, tidak ada tipuan.</p>
+      <a href="#shop" class="btn btn-primary">Lihat Koleksi</a>
+    </div>
+    <div class="hero-legend">
+      <h2>Sistem Kondisi Kami</h2>
+      <div class="grade-card">
+        <span class="stamp stamp-a">Like<br>New</span>
+        <p><strong>Like New</strong>Nyaris tanpa cacat, seperti baru dikeluarkan dari lemari.</p>
+      </div>
+      <div class="grade-card">
+        <span class="stamp stamp-b">Good</span>
+        <p><strong>Good</strong>Bekas pakai wajar, tidak ada kerusakan berarti.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="shop">
+    <div class="section-head">
+      <h2>Koleksi Tersedia</h2>
+      <div class="filter-pills" id="c-filter-pills"></div>
+    </div>
+    <div class="product-grid" id="c-product-grid">
+      <p style="grid-column:1/-1;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:.85rem;">Memuat produk…</p>
+    </div>
+  </section>
+
+  <section class="section" id="history">
+    <div class="section-head"><h2>Riwayat Pesanan</h2></div>
+    <div class="history-bar">Menampilkan pesanan untuk: <strong id="c-history-name">—</strong></div>
+    <div class="receipt-list" id="c-receipt-list"></div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 Gudang Vintage — Tangerang &amp; Jakarta.</p>
+      <p>Koleksi thrift terkurasi</p>
+    </div>
+  </footer>
+
+  <div class="overlay" id="c-overlay"></div>
+  <aside class="cart-drawer" id="c-cart-drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div><h3>Struk Belanja</h3></div>
+      <button class="drawer-close" id="c-close-cart">✕</button>
+    </div>
+    <div class="perforation"></div>
+    <div class="cart-items" id="c-cart-items"></div>
+    <div class="cart-foot">
+      <div class="cart-total-row"><span>Total</span><span id="c-cart-total">Rp0</span></div>
+      <button class="btn btn-primary btn-block" id="c-checkout-btn" disabled>Checkout</button>
+    </div>
+  </aside>
+  <div class="modal" id="c-checkout-modal" aria-hidden="true">
+    <div class="modal-head">
+      <h3 id="c-checkout-title">Checkout</h3>
+      <button class="modal-close" id="c-close-checkout">✕</button>
+    </div>
+    <div class="modal-body" id="c-checkout-body"></div>
+  </div>
+  <div id="c-toast-wrap"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     ADMIN PAGE
+════════════════════════════════════════════════════ -->
+<div id="page-admin" hidden>
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-dot">GV</div>
+      <div class="brand-text">Gudang Vintage<small>Admin Panel</small></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Utama</div>
+      <button class="nav-item is-active" data-section="dashboard">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard
+      </button>
+      <div class="nav-section-label" style="margin-top:8px">Katalog</div>
+      <button class="nav-item" data-section="products">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Produk
+      </button>
+      <div class="nav-section-label" style="margin-top:8px">Pelanggan</div>
+      <button class="nav-item" data-section="customers">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Pelanggan
+      </button>
+      <button class="nav-item" data-section="orders">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Pesanan
+      </button>
+      <div class="nav-section-label" style="margin-top:8px">Sistem</div>
+      <button class="nav-item" data-section="users">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Pengguna
+      </button>
+    </nav>
+    <div class="sidebar-user">
+      <div class="sidebar-user-name" id="a-user-name">—</div>
+      <div class="sidebar-user-role" id="a-user-role">—</div>
+      <button class="logout-btn-a" onclick="logout()">Keluar dari akun</button>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="topbar">
+      <div class="topbar-breadcrumb">
+        <span>Gudang Vintage</span><span style="color:#374151">›</span>
+        <span class="current" id="a-breadcrumb">Dashboard</span>
+      </div>
+    </header>
+    <div class="content" id="a-content">
+      <div style="padding:60px;text-align:center;color:#6b7280">Memuat…</div>
+    </div>
+  </div>
+
+  <div class="a-overlay" id="a-overlay" onclick="aCloseModals()"></div>
+  <div class="a-modal" id="a-crud-modal" role="dialog" aria-hidden="true">
+    <div class="modal-hd"><h3 id="a-crud-title">Form</h3>
+      <button class="modal-close-a" onclick="aCloseModals()">✕</button>
+    </div>
+    <div class="modal-body-a" id="a-crud-body"></div>
+    <div class="modal-foot-a">
+      <button class="btn btn-ghost" onclick="aCloseModals()">Batal</button>
+      <button class="btn btn-primary" id="a-crud-submit" onclick="aSubmitCrud()">Simpan</button>
+    </div>
+  </div>
+  <div class="a-modal" id="a-confirm-modal" role="dialog" aria-hidden="true">
+    <div class="confirm-body">
+      <div class="confirm-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></div>
+      <h4 id="a-confirm-title">Hapus item ini?</h4>
+      <p id="a-confirm-text">Tindakan ini tidak dapat dibatalkan.</p>
+    </div>
+    <div class="modal-foot-a">
+      <button class="btn btn-ghost" onclick="aCloseModals()">Batal</button>
+      <button class="btn btn-danger" id="a-confirm-ok">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<div id="a-toast-wrap"></div>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════
+const API_BASE = localStorage.getItem('gv_api_base') || 'http://thrift-admin_db.test/api';
+
+// ═══════════════════════════════════════════════════════════
+// SHARED API
+// ═══════════════════════════════════════════════════════════
+async function apiCall(path, opts = {}) {
+  const res = await fetch(API_BASE + path, {
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${res.status}`);
+  }
+  return res.status === 204 ? null : res.json();
+}
+const GET   = p     => apiCall(p);
+const POST  = (p,b) => apiCall(p, { method:'POST',   body:b });
+const PUT   = (p,b) => apiCall(p, { method:'PUT',    body:b });
+const PATCH = (p,b) => apiCall(p, { method:'PATCH',  body:b });
+const DEL   = p     => apiCall(p, { method:'DELETE' });
+
+// ═══════════════════════════════════════════════════════════
+// PAGE ROUTER
+// ═══════════════════════════════════════════════════════════
+function showPage(name) {
+  ['login', 'client', 'admin'].forEach(p =>
+    document.getElementById('page-' + p).hidden = (p !== name)
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════
+let session = null;
+
+document.getElementById('login-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn   = document.getElementById('login-btn');
+  const errEl = document.getElementById('login-error');
+  errEl.classList.remove('visible');
+  btn.disabled = true; btn.textContent = 'Memproses…';
+
+  try {
+    const data = await POST('/auth/login', {
+      email:    document.getElementById('login-email').value,
+      password: document.getElementById('login-password').value,
+    });
+    session = data;
+    sessionStorage.setItem('gv_sess', JSON.stringify(session));
+
+    if (session.role === 'admin') {
+      showPage('admin');
+      document.getElementById('a-user-name').textContent = session.user.name;
+      document.getElementById('a-user-role').textContent = session.user.role;
+      aRender('dashboard');
+    } else {
+      showPage('client');
+      initClient();
+    }
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.classList.add('visible');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Masuk';
+  }
+});
+
+function logout() {
+  POST('/auth/logout').catch(() => {});
+  sessionStorage.removeItem('gv_sess');
+  session = null;
+  // reset client state
+  cCart = []; cProducts = [];
+  document.getElementById('c-cart-count').textContent = '0';
+  // reset admin state
+  aCurrentSection = 'dashboard';
+  showPage('login');
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+}
+
+// ═══════════════════════════════════════════════════════════
+// ─── CLIENT SECTION ───────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+let cProducts = [];
+let cCart     = [];          // array of product IDs
+let cActiveCat = 'Semua';
+
+const cRp = n => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(n);
+const cFmtDate = iso => new Date(iso).toLocaleString('id-ID',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+const cProdById = id => cProducts.find(p => p.id === id);
+
+function cToast(msg, err = false) {
+  const w = document.getElementById('c-toast-wrap');
+  const el = document.createElement('div');
+  el.className = 'c-toast';
+  if (err) el.style.borderColor = 'var(--stamp-rust)';
+  el.textContent = msg;
+  w.appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+function cGarmentIcon(category) {
+  const icons = {
+    'Jaket':'<path d="M30 20 22 29 27 40 31 35 31 84 69 84 69 35 73 40 78 29 70 20 59 26 50 21 41 26 Z"/>',
+    'Baju': '<path d="M36 19 21 29 28 41 35 35 35 84 65 84 65 35 72 41 79 29 64 19 Q50 30 36 19 Z"/>',
+    'Celana':'<path d="M29 16 71 16 71 36 62 84 51 84 50 44 49 84 38 84 29 36 Z"/>',
+    'Dress':'<path d="M33 18 21 28 28 40 33 34 33 84 67 84 67 34 72 40 79 28 67 18 57 24 50 30 43 24 Z M50 30 50 84"/>',
+  };
+  const path = icons[category] || icons['Baju'];
+  return `<svg class="garment-icon" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${path}</svg>`;
+}
+
+function cCondClass(condition) {
+  if (condition === 'Like New') return 'grade-a';
+  if (condition === 'Good')     return 'grade-b';
+  return 'grade-c';
+}
+
+async function initClient() {
+  document.getElementById('c-username').textContent = session.user.name;
+  document.getElementById('c-history-name').textContent = session.user.name;
+  try {
+    cProducts = await GET('/products');
+    cRenderFilterPills();
+    cRenderProducts();
+    cRenderCart();
+    cLoadHistory();
+  } catch(e) {
+    document.getElementById('c-product-grid').innerHTML =
+      `<p style="grid-column:1/-1;color:var(--stamp-rust);font-family:'Space Mono',monospace;font-size:.8rem">Gagal memuat produk: ${e.message}</p>`;
+  }
+}
+
+function cRenderFilterPills() {
+  const cats = ['Semua', ...new Set(cProducts.map(p => p.category))];
+  document.getElementById('c-filter-pills').innerHTML = cats.map(c =>
+    `<button class="pill ${c === cActiveCat ? 'is-active' : ''}" onclick="cSetCat('${c}')">${c}</button>`
+  ).join('');
+}
+
+function cSetCat(cat) {
+  cActiveCat = cat;
+  cRenderFilterPills();
+  cRenderProducts();
+}
+
+function cRenderProducts() {
+  const grid = document.getElementById('c-product-grid');
+  const items = cProducts.filter(p => cActiveCat === 'Semua' || p.category === cActiveCat);
+  if (!items.length) {
+    grid.innerHTML = `<p style="grid-column:1/-1;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:.85rem;">Tidak ada produk pada kategori ini.</p>`;
+    return;
+  }
+  const soldOut = p => p.stock <= 0 || p.status !== 'Tersedia';
+  grid.innerHTML = items.map(p => {
+    const done   = soldOut(p);
+    const inCart = cCart.includes(p.id);
+    return `
+    <article class="product-card" onclick="cOpenModal(${p.id})">
+      <div class="product-card-media">
+        ${cGarmentIcon(p.category)}
+        ${done ? `<span class="sold-stamp">Habis</span>` : ''}
+      </div>
+      <div class="product-card-body">
+        <span class="product-cat">${p.category}${p.brand ? ' · ' + p.brand : ''}</span>
+        <div class="product-name">${p.name}</div>
+        <div class="product-meta-row">
+          <span class="condition-tag ${cCondClass(p.condition)}">${p.condition}</span>
+          <span class="product-price">${cRp(p.price)}</span>
+        </div>
+      </div>
+      <p class="product-code">${p.sku || p.id}${p.size ? ' · ' + p.size : ''}${done ? ' · Habis' : (inCart ? ' · Di keranjang' : ' · Tersedia')}</p>
+      <div class="product-card-footer">
+        <button class="btn btn-ghost-dark btn-block btn-small"
+          onclick="event.stopPropagation(); cAddToCart(${p.id})"
+          ${done || inCart ? 'disabled' : ''}>
+          ${done ? 'Habis' : (inCart ? 'Sudah di Keranjang' : 'Tambah ke Keranjang')}
+        </button>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+function cOpenModal(id) {
+  const p = cProdById(id);
+  if (!p) return;
+  const done = p.stock <= 0 || p.status !== 'Tersedia';
+  const inCart = cCart.includes(id);
+  document.getElementById('c-checkout-title').textContent = p.name;
+  document.getElementById('c-checkout-body').innerHTML = `
+    <div style="height:150px;background:var(--ink-2);display:flex;align-items:center;justify-content:center;margin-bottom:20px;position:relative">
+      ${cGarmentIcon(p.category)}
+      ${done ? `<span class="sold-stamp">Habis</span>` : ''}
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+      <span class="condition-tag ${cCondClass(p.condition)}">${p.condition}</span>
+      ${p.size ? `<span class="condition-tag grade-a" style="color:var(--denim);border-color:var(--denim)">${p.size}</span>` : ''}
+    </div>
+    <p style="font-size:.9rem;opacity:.8;margin-bottom:20px">${p.description || '—'}</p>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <span class="product-price" style="font-size:1.4rem">${cRp(p.price)}</span>
+      <span style="font-family:'Space Mono',monospace;font-size:.75rem;opacity:.5">Stok: ${p.stock}</span>
+    </div>
+    <button class="btn btn-primary btn-block" ${done||inCart?'disabled':''}
+      onclick="cAddToCart(${id}); cCloseModal()">
+      ${done ? 'Stok Habis' : (inCart ? 'Sudah di Keranjang' : 'Tambah ke Keranjang')}
+    </button>
+  `;
+  cOpenModal_show();
+}
+
+function cOpenModal_show() {
+  document.getElementById('c-overlay').classList.add('is-visible');
+  document.getElementById('c-checkout-modal').classList.add('is-open');
+  document.getElementById('c-checkout-modal').setAttribute('aria-hidden','false');
+}
+function cCloseModal() {
+  document.getElementById('c-checkout-modal').classList.remove('is-open');
+  document.getElementById('c-checkout-modal').setAttribute('aria-hidden','true');
+  if (!document.getElementById('c-cart-drawer').classList.contains('is-open'))
+    document.getElementById('c-overlay').classList.remove('is-visible');
+}
+
+// Cart
+function cAddToCart(id) {
+  const p = cProdById(id);
+  if (!p || p.stock <= 0 || cCart.includes(id)) return;
+  cCart.push(id);
+  cRenderProducts();
+  cRenderCart();
+  document.getElementById('c-cart-count').animate(
+    [{transform:'scale(1)'},{transform:'scale(1.35)'},{transform:'scale(1)'}],
+    {duration:280,easing:'ease-out'}
+  );
+}
+function cRemoveFromCart(id) {
+  cCart = cCart.filter(i => i !== id);
+  cRenderProducts();
+  cRenderCart();
+}
+function cRenderCart() {
+  document.getElementById('c-cart-count').textContent = cCart.length;
+  const wrap = document.getElementById('c-cart-items');
+  const btn  = document.getElementById('c-checkout-btn');
+  if (!cCart.length) {
+    wrap.innerHTML = `<p class="cart-empty">Keranjang kosong.<br>Pilih item untuk mulai.</p>`;
+    btn.disabled = true;
+    document.getElementById('c-cart-total').textContent = cRp(0);
+    return;
+  }
+  let total = 0;
+  wrap.innerHTML = cCart.map(id => {
+    const p = cProdById(id);
+    total += Number(p.price);
+    return `<div class="cart-row">
+      <div class="cart-row-info">
+        <div class="cart-row-name">${p.name}</div>
+        <div class="cart-row-meta">${p.sku||p.id} · ${p.condition}${p.size?' · '+p.size:''}</div>
+        <button class="cart-row-remove" onclick="cRemoveFromCart(${id})">Hapus</button>
+      </div>
+      <div class="cart-row-price">${cRp(p.price)}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('c-cart-total').textContent = cRp(total);
+  btn.disabled = false;
+}
+
+// Checkout form
+document.getElementById('c-checkout-btn').addEventListener('click', () => {
+  cCloseDrawer();
+  const total = cCart.reduce((s,id) => s + Number(cProdById(id).price), 0);
+  document.getElementById('c-checkout-title').textContent = 'Checkout';
+  document.getElementById('c-checkout-body').innerHTML = `
+    <div class="form-grid" style="margin-bottom:20px">
+      <div class="field"><label>Nama</label><input id="co-name" value="${session.user.name}"></div>
+      <div class="field-row">
+        <div class="field"><label>Email</label><input id="co-email" value="${session.user.email}"></div>
+        <div class="field"><label>Telepon</label><input id="co-phone" value="${session.user.phone||''}"></div>
+      </div>
+      <div class="field"><label>Alamat</label><textarea id="co-address">${session.user.address||''}</textarea></div>
+      <div class="field"><label>Metode Pembayaran</label>
+        <select id="co-payment">
+          <option>Transfer Bank BCA</option>
+          <option>Transfer Bank Mandiri</option>
+          <option>QRIS</option>
+          <option>COD (Bayar di Tempat)</option>
+        </select>
+      </div>
+    </div>
+    <div class="checkout-summary">
+      ${cCart.map(id=>{const p=cProdById(id);return `<div class="checkout-summary-row"><span>${p.name}</span><span>${cRp(p.price)}</span></div>`;}).join('')}
+      <div class="checkout-summary-row total"><span>Total</span><span>${cRp(total)}</span></div>
+    </div>
+    <button class="btn btn-primary btn-block" onclick="cSubmitOrder()">Buat Pesanan</button>
+  `;
+  cOpenModal_show();
+});
+
+async function cSubmitOrder() {
+  try {
+    const payload = {
+      customer_id    : session.user.id,
+      payment_method : document.getElementById('co-payment').value,
+      product_ids    : [...cCart],
+    };
+    const order = await POST('/orders', payload);
+    cCart = [];
+    cProducts = await GET('/products');
+    cRenderProducts();
+    cRenderCart();
+    document.getElementById('c-checkout-title').textContent = 'Pesanan Dibuat';
+    document.getElementById('c-checkout-body').innerHTML = `
+      <div class="checkout-confirm">
+        <span class="stamp stamp-b">Belum<br>Lunas</span>
+        <h4>Pesanan #${order.order_id||'—'} Tercatat</h4>
+        <p>Status: <strong>Pending</strong> · Pembayaran: <strong>Unpaid</strong></p>
+        <button class="btn btn-ghost-dark btn-block" onclick="cCloseModal();cLoadHistory();document.getElementById('history').scrollIntoView({behavior:'smooth'})">Lihat Riwayat</button>
+      </div>`;
+    cLoadHistory();
+  } catch(e) {
+    cToast('Checkout gagal: ' + e.message, true);
+  }
+}
+
+async function cLoadHistory() {
+  const list = document.getElementById('c-receipt-list');
+  list.innerHTML = `<p style="font-family:'Space Mono',monospace;font-size:.8rem;color:var(--text-muted)">Memuat…</p>`;
+  try {
+    const orders = await GET(`/customer/orders?customer_id=${session.user.id}`);
+    if (!orders.length) {
+      list.innerHTML = `<div class="history-empty"><p>Belum ada pesanan.</p><a href="#shop" class="btn btn-ghost-light btn-small">Mulai Belanja</a></div>`;
+      return;
+    }
+    list.innerHTML = orders.map(o => {
+      const pay = o.payment;
+      return `<div class="receipt-card">
+        <div class="receipt-card-inner">
+          <div class="receipt-top">
+            <div><h4>Pesanan #${o.order_id}</h4><div class="receipt-date">${cFmtDate(o.order_date)}</div></div>
+            <span class="badge ${o.status==='Completed'?'badge-green':'badge-amber'}">${o.status==='Completed'?'Selesai':'Menunggu'}</span>
+          </div>
+          <div class="receipt-items">
+            ${(o.items||[]).map(i=>`<div class="receipt-item-row"><span class="ri-name">${i.product_name||'Item'}</span><span class="ri-price">${cRp(i.price)}</span></div>`).join('')}
+          </div>
+          <div class="receipt-total"><span>Total</span><span>${cRp(o.total_amount)}</span></div>
+          ${pay ? `<div style="margin-top:12px;font-family:'Space Mono',monospace;font-size:.72rem;opacity:.65">${pay.payment_method}${pay.payment_status==='Paid'?' · Lunas':''}</div>` : ''}
+        </div>
+        <div class="receipt-zigzag"></div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = `<p style="color:var(--stamp-rust);font-family:'Space Mono',monospace;font-size:.8rem">Gagal memuat riwayat.</p>`;
+  }
+}
+
+// Cart drawer controls
+document.getElementById('c-cart-btn').addEventListener('click',()=>{
+  document.getElementById('c-cart-drawer').classList.add('is-open');
+  document.getElementById('c-cart-drawer').setAttribute('aria-hidden','false');
+  document.getElementById('c-overlay').classList.add('is-visible');
+});
+function cCloseDrawer(){
+  document.getElementById('c-cart-drawer').classList.remove('is-open');
+  document.getElementById('c-cart-drawer').setAttribute('aria-hidden','true');
+  document.getElementById('c-overlay').classList.remove('is-visible');
+}
+document.getElementById('c-close-cart').addEventListener('click', cCloseDrawer);
+document.getElementById('c-overlay').addEventListener('click', () => { cCloseDrawer(); cCloseModal(); });
+document.getElementById('c-close-checkout').addEventListener('click', cCloseModal);
+
+// ═══════════════════════════════════════════════════════════
+// ─── ADMIN SECTION ────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+let aCurrentSection = 'dashboard';
+let aCrudMode = null; let aCrudType = null; let aCrudId = null;
+let aPage = { products:1, customers:1, users:1, orders:1 };
+let aSearch = { products:'', customers:'', users:'' };
+let aFilter = { products:'', customers:'', users:'', orders:'' };
+
+const aCrumbs = { dashboard:'Dashboard', products:'Manajemen Produk', customers:'Manajemen Pelanggan', users:'Manajemen Pengguna', orders:'Manajemen Pesanan' };
+
+function aToast(msg, type='success') {
+  const el = document.createElement('div');
+  el.className = `a-toast a-toast-${type}`;
+  el.textContent = msg;
+  document.getElementById('a-toast-wrap').appendChild(el);
+  setTimeout(()=>el.remove(), 3500);
+}
+
+// Nav
+document.querySelectorAll('#page-admin .nav-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const sec = btn.dataset.section;
+    document.querySelectorAll('#page-admin .nav-item').forEach(b=>b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    aCurrentSection = sec;
+    document.getElementById('a-breadcrumb').textContent = aCrumbs[sec];
+    aRender(sec);
+  });
+});
+
+async function aRender(sec) {
+  const el = document.getElementById('a-content');
+  el.innerHTML = `<div style="padding:60px;text-align:center;color:#6b7280">Memuat...</div>`;
+  try {
+    if (sec==='dashboard') await aRenderDashboard();
+    else if (sec==='products') await aRenderProducts();
+    else if (sec==='customers') await aRenderCustomers();
+    else if (sec==='users') await aRenderUsers();
+    else if (sec==='orders') await aRenderOrders();
+  } catch(e) {
+    el.innerHTML = `<div style="padding:40px;text-align:center;color:#ef4444;font-size:13px">Gagal memuat: ${e.message}</div>`;
+  }
+}
+
+// Dashboard
+async function aRenderDashboard() {
+  const s = await GET('/admin/dashboard');
+  document.getElementById('a-content').innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-card c-indigo"><div class="stat-label">Total Produk</div><div class="stat-value">${s.total_products||0}</div><div class="stat-sub">item di katalog</div></div>
+      <div class="stat-card c-green"><div class="stat-label">Tersedia</div><div class="stat-value">${s.available||0}</div><div class="stat-sub">siap dijual</div></div>
+      <div class="stat-card c-amber"><div class="stat-label">Stok Menipis</div><div class="stat-value">${s.low_stock||0}</div><div class="stat-sub">≤ 2 unit</div></div>
+      <div class="stat-card c-red"><div class="stat-label">Habis</div><div class="stat-value">${s.out_of_stock||0}</div><div class="stat-sub">perlu restock</div></div>
+      <div class="stat-card c-indigo"><div class="stat-label">Pelanggan</div><div class="stat-value">${s.total_customers||0}</div><div class="stat-sub">terdaftar</div></div>
+      <div class="stat-card c-green"><div class="stat-label">Pengguna</div><div class="stat-value">${s.total_users||0}</div><div class="stat-sub">akun admin</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div>
+        <div class="section-hd"><h2>Produk Terbaru</h2></div>
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Nama</th><th>SKU</th><th>Stok</th><th>Status</th></tr></thead>
+          <tbody>${(s.recent_products||[]).map(p=>`<tr><td class="cell-name">${p.name}</td><td class="cell-mono">${p.sku||'—'}</td><td>${aStockMeter(p.stock)}</td><td>${aStatusBadge(p.status)}</td></tr>`).join('')||'<tr><td colspan="4" class="table-empty">Kosong</td></tr>'}</tbody>
+        </table></div>
+      </div>
+      <div>
+        <div class="section-hd"><h2>Pelanggan Terbaru</h2></div>
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Nama</th><th>Email</th></tr></thead>
+          <tbody>${(s.recent_customers||[]).map(c=>`<tr><td class="cell-name">${c.name}</td><td class="cell-mono" style="font-size:11px">${c.email}</td></tr>`).join('')||'<tr><td colspan="2" class="table-empty">Kosong</td></tr>'}</tbody>
+        </table></div>
+      </div>
+    </div>`;
+}
+
+// Products
+async function aRenderProducts() {
+  const params = new URLSearchParams({page:aPage.products});
+  if(aSearch.products) params.set('search',aSearch.products);
+  if(aFilter.products) params.set('category',aFilter.products);
+  const data = await GET(`/admin/products?${params}`);
+  document.getElementById('a-content').innerHTML = `
+    <div class="section-hd"><h2>Manajemen Produk</h2>
+      <div class="section-hd-actions"><button class="btn btn-primary" onclick="aOpenCreate('products')">+ Tambah Produk</button></div>
+    </div>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Cari nama, SKU…" value="${aSearch.products}" onchange="aSearch.products=this.value;aPage.products=1;aRenderProducts()">
+      </div>
+      <select class="filter-select" onchange="aFilter.products=this.value;aPage.products=1;aRenderProducts()">
+        <option value="">Semua Kategori</option>
+        ${['Baju','Celana','Jaket','Dress','Aksesoris','Sepatu'].map(c=>`<option value="${c}" ${aFilter.products===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+    </div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>SKU</th><th>Produk</th><th>Kategori</th><th>Kondisi</th><th>Ukuran</th><th>Harga</th><th>Stok</th><th>Status</th><th>Aksi</th></tr></thead>
+      <tbody>
+        ${!(data.data||[]).length ? `<tr><td colspan="9"><div class="table-empty"><strong>Tidak ada produk</strong></div></td></tr>` :
+          (data.data||[]).map(p=>`<tr>
+            <td class="cell-mono">${p.sku||'—'}</td>
+            <td class="cell-name">${p.name}${p.brand?`<div style="font-size:11px;color:var(--text-3)">${p.brand}</div>`:''}</td>
+            <td><span class="badge badge-indigo">${p.category}</span></td>
+            <td style="font-size:12px;color:var(--text-2)">${p.condition||'—'}</td>
+            <td style="font-size:12px;color:var(--text-2)">${p.size||'—'}</td>
+            <td class="cell-mono">Rp${parseInt(p.price||0).toLocaleString('id-ID')}</td>
+            <td>${aStockMeter(p.stock)}</td>
+            <td>${aStatusBadge(p.status)}</td>
+            <td class="cell-actions">
+              <button class="btn btn-icon btn-sm" onclick="aOpenEdit('products',${p.id})" title="Edit">✏</button>
+              <button class="btn btn-icon btn-sm" style="color:var(--red)" onclick="aConfirmDelete('products',${p.id},'${aEsc(p.name)}')" title="Hapus">🗑</button>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    ${aRenderPagination(data,'products')}</div>`;
+}
+
+// Customers
+async function aRenderCustomers() {
+  const params = new URLSearchParams({page:aPage.customers});
+  if(aSearch.customers) params.set('search',aSearch.customers);
+  const data = await GET(`/admin/customers?${params}`);
+  document.getElementById('a-content').innerHTML = `
+    <div class="section-hd"><h2>Manajemen Pelanggan</h2>
+      <div class="section-hd-actions"><button class="btn btn-primary" onclick="aOpenCreate('customers')">+ Tambah Pelanggan</button></div>
+    </div>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Cari nama, email…" value="${aSearch.customers}" onchange="aSearch.customers=this.value;aPage.customers=1;aRenderCustomers()">
+      </div>
+    </div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Nama</th><th>Email</th><th>Telepon</th><th>Alamat</th><th>Terdaftar</th><th>Aksi</th></tr></thead>
+      <tbody>
+        ${!(data.data||[]).length ? `<tr><td colspan="6"><div class="table-empty"><strong>Tidak ada pelanggan</strong></div></td></tr>` :
+          (data.data||[]).map(c=>`<tr>
+            <td class="cell-name">${c.name}</td>
+            <td class="cell-mono" style="font-size:11px">${c.email}</td>
+            <td style="font-size:12px;color:var(--text-2)">${c.phone||'—'}</td>
+            <td style="font-size:12px;color:var(--text-2);max-width:160px"><div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.address||'—'}</div></td>
+            <td style="font-size:11px;color:var(--text-3)">${c.created_at ? new Date(c.created_at).toLocaleDateString('id-ID') : '—'}</td>
+            <td class="cell-actions">
+              <button class="btn btn-icon btn-sm" onclick="aOpenEdit('customers',${c.id})" title="Edit">✏</button>
+              <button class="btn btn-icon btn-sm" style="color:var(--red)" onclick="aConfirmDelete('customers',${c.id},'${aEsc(c.name)}')" title="Hapus">🗑</button>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    ${aRenderPagination(data,'customers')}</div>`;
+}
+
+// Users
+async function aRenderUsers() {
+  const params = new URLSearchParams({page:aPage.users});
+  if(aSearch.users) params.set('search',aSearch.users);
+  if(aFilter.users) params.set('role',aFilter.users);
+  const data = await GET(`/admin/users?${params}`);
+  document.getElementById('a-content').innerHTML = `
+    <div class="section-hd"><h2>Manajemen Pengguna</h2>
+      <div class="section-hd-actions"><button class="btn btn-primary" onclick="aOpenCreate('users')">+ Tambah Pengguna</button></div>
+    </div>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Cari nama atau email…" value="${aSearch.users}" onchange="aSearch.users=this.value;aPage.users=1;aRenderUsers()">
+      </div>
+      <select class="filter-select" onchange="aFilter.users=this.value;aPage.users=1;aRenderUsers()">
+        <option value="">Semua Role</option>
+        ${['Admin','Staff','Kasir','Gudang'].map(r=>`<option value="${r}" ${aFilter.users===r?'selected':''}>${r}</option>`).join('')}
+      </select>
+    </div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Nama</th><th>Email</th><th>Role</th><th>Status</th><th>Bergabung</th><th>Aksi</th></tr></thead>
+      <tbody>
+        ${!(data.data||[]).length ? `<tr><td colspan="6"><div class="table-empty"><strong>Tidak ada pengguna</strong></div></td></tr>` :
+          (data.data||[]).map(u=>`<tr>
+            <td class="cell-name">${u.name}</td>
+            <td class="cell-mono" style="font-size:11px">${u.email}</td>
+            <td><span class="badge ${aRoleBadge(u.role)}">${u.role}</span></td>
+            <td><button class="badge ${u.status==='Aktif'?'badge-green':'badge-red'}" style="border:none;cursor:pointer" onclick="aToggleUser(${u.id})">${u.status}</button></td>
+            <td style="font-size:11px;color:var(--text-3)">${u.created_at ? new Date(u.created_at).toLocaleDateString('id-ID') : '—'}</td>
+            <td class="cell-actions">
+              <button class="btn btn-icon btn-sm" onclick="aOpenEdit('users',${u.id})" title="Edit">✏</button>
+              <button class="btn btn-icon btn-sm" style="color:var(--red)" onclick="aConfirmDelete('users',${u.id},'${aEsc(u.name)}')" title="Hapus">🗑</button>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    ${aRenderPagination(data,'users')}</div>`;
+}
+
+// CRUD forms
+const aForms = {
+  products: {
+    create: () => `<div class="form-grid">
+      <div class="form-row-2">
+        <div class="field"><label>Nama *</label><input name="name" required placeholder="cth. Vintage Denim Jacket"></div>
+        <div class="field"><label>Brand</label><input name="brand" placeholder="cth. Levi's"></div>
+      </div>
+      <div class="form-row-2">
+        <div class="field"><label>Kategori *</label><select name="category" required><option value="">Pilih</option>${['Baju','Celana','Jaket','Dress','Aksesoris','Sepatu'].map(c=>`<option>${c}</option>`).join('')}</select></div>
+        <div class="field"><label>Ukuran *</label><select name="size" required><option value="">Pilih</option>${['XS','S','M','L','XL','XXL','Free Size'].map(s=>`<option>${s}</option>`).join('')}</select></div>
+      </div>
+      <div class="form-row-2">
+        <div class="field"><label>Kondisi *</label><select name="condition" required><option value="">Pilih</option>${['Like New','Good','Fair'].map(c=>`<option>${c}</option>`).join('')}</select></div>
+        <div class="field"><label>Status *</label><select name="status" required>${['Tersedia','Draft','Habis'].map(s=>`<option>${s}</option>`).join('')}</select></div>
+      </div>
+      <div class="form-row-2">
+        <div class="field"><label>Harga (Rp) *</label><input name="price" type="number" min="0" step="1000" required placeholder="150000"></div>
+        <div class="field"><label>Stok *</label><input name="stock" type="number" min="0" required placeholder="1"></div>
+      </div>
+      <div class="field"><label>Deskripsi</label><textarea name="description" placeholder="Detail kondisi item…"></textarea></div>
+      <div class="field"><label>Tags</label><input name="tags" placeholder="vintage, oversized (pisah koma)"></div>
+    </div>`,
+    edit: d => `<div class="form-grid">
+      <div class="form-row-2">
+        <div class="field"><label>Nama *</label><input name="name" required value="${aEsc(d.name)}"></div>
+        <div class="field"><label>Brand</label><input name="brand" value="${aEsc(d.brand||'')}"></div>
+      </div>
+      <div class="form-row-2">
+        <div class="field"><label>Kategori *</label><select name="category" required>${['Baju','Celana','Jaket','Dress','Aksesoris','Sepatu'].map(c=>`<option ${d.category===c?'selected':''}>${c}</option>`).join('')}</select></div>
+        <div class="field"><label>Ukuran *</label><select name="size" required>${['XS','S','M','L','XL','XXL','Free Size'].map(s=>`<option ${d.size===s?'selected':''}>${s}</option>`).join('')}</select></div>
+      </div>
+      <div class="form-row-2">
+        <div class="field"><label>Kondisi *</label><select name="condition" required>${['Like New','Good','Fair'].map(c=>`<option ${d.condition===c?'selected':''}>${c}</option>`).join('')}</select></div>
+        <div class="field"><label>Status *</label><select name="status" required>${['Tersedia','Draft','Habis'].map(s=>`<option ${d.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
+      </div>
+      <div class="form-row-2">
+        <div class="field"><label>Harga (Rp) *</label><input name="price" type="number" min="0" step="1000" required value="${d.price}"></div>
+        <div class="field"><label>Stok *</label><input name="stock" type="number" min="0" required value="${d.stock}"></div>
+      </div>
+      <div class="field"><label>Deskripsi</label><textarea name="description">${aEsc(d.description||'')}</textarea></div>
+      <div class="field"><label>Tags</label><input name="tags" value="${aEsc(d.tags||'')}"></div>
+    </div>`,
+  },
+  customers: {
+    create: () => `<div class="form-grid">
+      <div class="form-row-2">
+        <div class="field"><label>Nama *</label><input name="name" required placeholder="Ahmad Aqila"></div>
+        <div class="field"><label>Email *</label><input name="email" type="email" required placeholder="nama@email.com"></div>
+      </div>
+      <div class="field"><label>Telepon</label><input name="phone" placeholder="08xxxxxxxx"></div>
+      <div class="field"><label>Alamat</label><textarea name="address" placeholder="Jl. Nama No. x, Kota"></textarea></div>
+      <div class="field"><label>Password *</label><input name="password" type="password" required minlength="6" placeholder="Min. 6 karakter">
+        <div class="field-hint">Password untuk pelanggan masuk ke toko.</div>
+      </div>
+    </div>`,
+    edit: d => `<div class="form-grid">
+      <div class="form-row-2">
+        <div class="field"><label>Nama *</label><input name="name" required value="${aEsc(d.name)}"></div>
+        <div class="field"><label>Email *</label><input name="email" type="email" required value="${aEsc(d.email)}"></div>
+      </div>
+      <div class="field"><label>Telepon</label><input name="phone" value="${aEsc(d.phone||'')}"></div>
+      <div class="field"><label>Alamat</label><textarea name="address">${aEsc(d.address||'')}</textarea></div>
+      <div class="field"><label>Password Baru</label><input name="password" type="password" placeholder="Kosongkan jika tidak diubah">
+        <div class="field-hint">Biarkan kosong untuk mempertahankan password lama.</div>
+      </div>
+    </div>`,
+  },
+  users: {
+    create: () => `<div class="form-grid">
+      <div class="form-row-2">
+        <div class="field"><label>Nama *</label><input name="name" required placeholder="Nama lengkap"></div>
+        <div class="field"><label>Email *</label><input name="email" type="email" required placeholder="email@toko.com"></div>
+      </div>
+      <div class="form-row-2">
+        <div class="field"><label>Role *</label><select name="role" required>${['Admin','Staff','Kasir','Gudang'].map(r=>`<option>${r}</option>`).join('')}</select></div>
+        <div class="field"><label>Status</label><select name="status"><option>Aktif</option><option>Nonaktif</option></select></div>
+      </div>
+      <div class="form-row-2">
+        <div class="field"><label>Password *</label><input name="password" type="password" required minlength="8" placeholder="Min. 8 karakter"></div>
+        <div class="field"><label>Konfirmasi *</label><input name="password_confirmation" type="password" required placeholder="Ulangi password"></div>
+      </div>
+    </div>`,
+    edit: d => `<div class="form-grid">
+      <div class="form-row-2">
+        <div class="field"><label>Nama *</label><input name="name" required value="${aEsc(d.name)}"></div>
+        <div class="field"><label>Email *</label><input name="email" type="email" required value="${aEsc(d.email)}"></div>
+      </div>
+      <div class="form-row-2">
+        <div class="field"><label>Role *</label><select name="role" required>${['Admin','Staff','Kasir','Gudang'].map(r=>`<option ${d.role===r?'selected':''}>${r}</option>`).join('')}</select></div>
+        <div class="field"><label>Status</label><select name="status">${['Aktif','Nonaktif'].map(s=>`<option ${d.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
+      </div>
+      <div class="field"><label>Password Baru</label><input name="password" type="password" placeholder="Kosongkan jika tidak diubah">
+        <div class="field-hint">Biarkan kosong untuk mempertahankan password lama.</div>
+      </div>
+    </div>`,
+  },
+};
+
+const aTitles = {
+  products:{ create:'Tambah Produk', edit:'Edit Produk' },
+  customers:{ create:'Tambah Pelanggan', edit:'Edit Pelanggan' },
+  users:{ create:'Tambah Pengguna', edit:'Edit Pengguna' },
+};
+
+function aOpenCreate(type) {
+  aCrudMode='create'; aCrudType=type; aCrudId=null;
+  document.getElementById('a-crud-title').textContent = aTitles[type].create;
+  document.getElementById('a-crud-body').innerHTML = aForms[type].create();
+  aOpenModal('a-crud-modal');
+}
+
+async function aOpenEdit(type, id) {
+  aCrudMode='edit'; aCrudType=type; aCrudId=id;
+  document.getElementById('a-crud-title').textContent = aTitles[type].edit;
+  document.getElementById('a-crud-body').innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-3)">Memuat...</div>`;
+  aOpenModal('a-crud-modal');
+  try {
+    const d = await GET(`/admin/${type}/${id}`);
+    document.getElementById('a-crud-body').innerHTML = aForms[type].edit(d);
+  } catch(e) { aToast('Gagal memuat: '+e.message,'error'); aCloseModals(); }
+}
+
+async function aSubmitCrud() {
+  const btn = document.getElementById('a-crud-submit');
+  btn.disabled=true; btn.textContent='Menyimpan…';
+  try {
+    const inputs = document.getElementById('a-crud-body').querySelectorAll('input,select,textarea');
+    const data = {};
+    inputs.forEach(el => { if(el.name) data[el.name]=el.value; });
+    if (aCrudMode==='create') { await POST(`/admin/${aCrudType}`, data); aToast('Berhasil ditambahkan ✓'); }
+    else { await PUT(`/admin/${aCrudType}/${aCrudId}`, data); aToast('Berhasil diperbarui ✓'); }
+    aCloseModals();
+    aRender(aCurrentSection);
+  } catch(e) {
+    aToast(e.message,'error');
+  } finally { btn.disabled=false; btn.textContent='Simpan'; }
+}
+
+function aConfirmDelete(type, id, name) {
+  document.getElementById('a-confirm-title').textContent = `Hapus "${name}"?`;
+  document.getElementById('a-confirm-ok').onclick = async () => {
+    try { await DEL(`/admin/${type}/${id}`); aToast('Berhasil dihapus ✓'); aCloseModals(); aRender(aCurrentSection); }
+    catch(e) { aToast(e.message,'error'); }
+  };
+  aOpenModal('a-confirm-modal');
+}
+
+async function aToggleUser(id) {
+  try { await PATCH(`/admin/users/${id}/toggle-status`); aToast('Status diubah ✓'); aRender('users'); }
+  catch(e) { aToast(e.message,'error'); }
+}
+
+function aOpenModal(id) {
+  document.getElementById('a-overlay').classList.add('is-open');
+  document.getElementById(id).classList.add('is-open');
+  document.getElementById(id).setAttribute('aria-hidden','false');
+}
+function aCloseModals() {
+  document.querySelectorAll('#page-admin .a-modal').forEach(m => { m.classList.remove('is-open'); m.setAttribute('aria-hidden','true'); });
+  document.getElementById('a-overlay').classList.remove('is-open');
+}
+
+function aRenderPagination(data, type) {
+  if (!data.last_page || data.last_page <= 1) return '';
+  const cur=data.current_page, last=data.last_page;
+  const btns = [];
+  for(let i=Math.max(1,cur-2);i<=Math.min(last,cur+2);i++)
+    btns.push(`<button class="page-btn ${i===cur?'active':''}" onclick="aPage.${type}=${i};aRender${type.charAt(0).toUpperCase()+type.slice(1)}()">${i}</button>`);
+  return `<div class="pagination">
+    <span>${data.from||0}–${data.to||0} dari ${data.total||0} item</span>
+    <div class="pagination-btns">
+      <button class="page-btn" ${cur===1?'disabled':''} onclick="aPage.${type}=${cur-1};aRender${type.charAt(0).toUpperCase()+type.slice(1)}()">‹</button>
+      ${btns.join('')}
+      <button class="page-btn" ${cur===last?'disabled':''} onclick="aPage.${type}=${cur+1};aRender${type.charAt(0).toUpperCase()+type.slice(1)}()">›</button>
+    </div>
+  </div>`;
+}
+
+// aRenderProducts / aRenderCustomers / aRenderUsers are defined above as async functions
+// and are called directly by the pagination buttons.
+
+// Orders
+async function aRenderOrders() {
+  const params = new URLSearchParams({page: aPage.orders || 1});
+  if (aFilter.orders) params.set('status', aFilter.orders);
+  const data = await GET(`/admin/orders?${params}`);
+  const fmtDate = iso => new Date(iso).toLocaleString('id-ID',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('a-content').innerHTML = `
+    <div class="section-hd">
+      <h2>Manajemen Pesanan</h2>
+      <div class="section-hd-actions">
+        <select class="filter-select" onchange="aFilter.orders=this.value;aRenderOrders()">
+          <option value="">Semua Status</option>
+          <option value="Pending" ${aFilter.orders==='Pending'?'selected':''}>Pending</option>
+          <option value="Completed" ${aFilter.orders==='Completed'?'selected':''}>Completed</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap"><table class="data-table">
+      <thead><tr>
+        <th>#</th><th>Pelanggan</th><th>Item</th>
+        <th>Total</th><th>Metode</th><th>Tgl Pesan</th>
+        <th>Status Order</th><th>Status Bayar</th><th>Aksi</th>
+      </tr></thead>
+      <tbody>
+        ${!(data.data||[]).length
+          ? `<tr><td colspan="9"><div class="table-empty"><strong>Tidak ada pesanan</strong></div></td></tr>`
+          : (data.data||[]).map(o => `<tr>
+            <td class="cell-mono" style="font-size:11px">#${o.order_id}</td>
+            <td class="cell-name">${o.customer ? o.customer.name : '<span style="color:var(--text-3)">—</span>'}</td>
+            <td style="font-size:12px;color:var(--text-2);max-width:180px">
+              ${(o.items||[]).map(i=>`<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i.product_name}</div>`).join('')}
+            </td>
+            <td class="cell-mono">Rp${parseInt(o.total_amount||0).toLocaleString('id-ID')}</td>
+            <td style="font-size:12px;color:var(--text-2)">${o.payment ? o.payment.payment_method : '—'}</td>
+            <td style="font-size:11px;color:var(--text-3)">${fmtDate(o.order_date)}</td>
+            <td><span class="badge ${o.status==='Completed'?'badge-green':'badge-amber'}">${o.status}</span></td>
+            <td>
+              ${o.payment
+                ? `<span class="badge ${o.payment.payment_status==='Paid'?'badge-green':'badge-red'}">${o.payment.payment_status}</span>`
+                : '<span class="badge badge-gray">—</span>'}
+            </td>
+            <td>
+              ${o.payment && o.payment.payment_status !== 'Paid'
+                ? `<button class="btn btn-sm" style="background:var(--green-l);color:var(--green);border:1px solid rgba(16,185,129,.3)"
+                    onclick="aMarkPaid(${o.payment.payment_id})">Tandai Lunas</button>`
+                : o.payment && o.payment.payment_status === 'Paid'
+                  ? `<span style="font-size:11px;color:var(--text-3)">✓ Lunas</span>`
+                  : '—'}
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    ${aRenderPagination(data,'orders')}</div>`;
+}
+
+async function aMarkPaid(paymentId) {
+  try {
+    await PATCH(`/admin/payments/${paymentId}/mark-paid`);
+    aToast('Pembayaran dikonfirmasi ✓');
+    aRenderOrders();
+  } catch(e) {
+    aToast(e.message, 'error');
+  }
+}
+
+// UI helpers
+function aStockMeter(stock) {
+  const n=parseInt(stock)||0;
+  const filled=n===0?0:Math.max(1,Math.round(n>10?5:(n/10)*5));
+  const color=n===0?'fill-r':n<=2?'fill-a':'fill-g';
+  return `<div class="stock-meter"><div class="stock-segments">${Array.from({length:5},(_,i)=>`<div class="stock-seg ${i<filled?color:''}"></div>`).join('')}</div><span class="stock-num">${n}</span></div>`;
+}
+function aStatusBadge(s) { const m={'Tersedia':'badge-green','Draft':'badge-gray','Habis':'badge-red'}; return `<span class="badge ${m[s]||'badge-gray'}">${s}</span>`; }
+function aRoleBadge(r) { const m={'Admin':'badge-indigo','Staff':'badge-green','Kasir':'badge-amber','Gudang':'badge-gray'}; return m[r]||'badge-gray'; }
+function aEsc(s) { return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+document.addEventListener('keydown', e => { if(e.key==='Escape') aCloseModals(); });
+
+// ═══════════════════════════════════════════════════════════
+// BOOT — restore session if exists
+// ═══════════════════════════════════════════════════════════
+(function boot() {
+  const saved = sessionStorage.getItem('gv_sess');
+  if (saved) {
+    try {
+      session = JSON.parse(saved);
+      if (session.role === 'admin') {
+        showPage('admin');
+        document.getElementById('a-user-name').textContent = session.user.name;
+        document.getElementById('a-user-role').textContent = session.user.role;
+        aRender('dashboard');
+      } else {
+        showPage('client');
+        initClient();
+      }
+    } catch (_) {
+      showPage('login');
+    }
+  } else {
+    showPage('login');
+  }
+})();
+</script>
+</body>
+</html>

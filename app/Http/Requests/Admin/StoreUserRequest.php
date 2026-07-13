@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Http\Requests\Admin;
+
+use App\Models\User;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
+
+class StoreUserRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return auth()->user()?->isAdmin();
+    }
+
+    public function rules(): array
+    {
+        return [
+            'name'     => ['required', 'string', 'max:255'],
+            'email'    => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'role'     => ['required', 'string', 'in:Admin,Staff,Kasir,Gudang'],
+            'status'   => ['required', 'string', 'in:Aktif,Nonaktif'],
+            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.unique'          => 'Email sudah digunakan oleh pengguna lain.',
+            'password.confirmed'    => 'Konfirmasi password tidak cocok.',
+            'password.min'          => 'Password minimal 8 karakter.',
+        ];
+    }
+}
