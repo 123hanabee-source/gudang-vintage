@@ -4,47 +4,35 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Providers\RouteServiceProvider;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    // ── Show login form ──────────────────────────────────
-    public function create(): View
-    {
-        return view('auth.login');
-    }
-
-    // ── Handle login submission ──────────────────────────
-    public function store(LoginRequest $request): RedirectResponse
+    /**
+     * Handle an incoming authentication request.
+     */
+    public function store(LoginRequest $request): Response
     {
         $request->authenticate();
 
-        // Reject inactive accounts immediately after auth succeeds
-        if (! auth()->user()->isActive()) {
-            Auth::logout();
-
-            return back()->withErrors([
-                'email' => 'Akun Anda telah dinonaktifkan. Hubungi administrator.',
-            ]);
-        }
-
         $request->session()->regenerate();
 
-        return redirect()->intended(RouteServiceProvider::HOME);
+        return response()->noContent();
     }
 
-    // ── Logout ───────────────────────────────────────────
-    public function destroy(Request $request): RedirectResponse
+    /**
+     * Destroy an authenticated session.
+     */
+    public function destroy(Request $request): Response
     {
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
+
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return response()->noContent();
     }
 }
